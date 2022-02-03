@@ -51,14 +51,17 @@ function createCartItemElement({ sku, name, salePrice }) {
 }
 
 const createCart = async (event) => {
-  const itemObj = await fetchItem(event.target.parentNode.firstChild.innerText);
+  const itemObj = await fetchItem(getSkuFromProductItem(event.target.parentNode));
   const { id, title, price } = itemObj;
   const cart = document.querySelector('.cart__items');
   cart.appendChild(createCartItemElement({ sku: id, name: title, salePrice: price }));
+  saveCartItems(cart.innerHTML);
 };
 
 window.onload = async () => {
+  const cart = document.querySelector('.cart__items');
   await showItems();
   const addButtons = document.querySelectorAll('.item__add');
   addButtons.forEach((button) => button.addEventListener('click', createCart));
+  getSavedCartItems(cart);
 };
