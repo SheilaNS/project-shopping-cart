@@ -1,3 +1,7 @@
+const cart = document.querySelector('.cart__items'); // cart ol
+const clearCart = document.querySelector('.empty-cart'); // clear button
+const cartSection = document.querySelector('.cart'); // cart section
+
 function createProductImageElement(imageSource) {
   const img = document.createElement('img');
   img.className = 'item__image';
@@ -40,6 +44,7 @@ function getSkuFromProductItem(item) {
 
 function cartItemClickListener(event) {
   event.target.remove();
+  saveCartItems(cart.innerHTML);
 }
 
 function createCartItemElement({ sku, name, salePrice }) {
@@ -50,18 +55,42 @@ function createCartItemElement({ sku, name, salePrice }) {
   return li;
 }
 
+const itemPrice = async (event) => {
+  const itemObj = await fetchItem(getSkuFromProductItem(event.target.parentNode));
+  const { price } = itemObj;
+  cartSection.appendChild(createCustomElement('span', 'item-price', Number(price)));
+};
+
+const sumPrice = () => {
+  const totalSpan = document.createElement('span');
+  totalSpan.className = 'total-price';
+  totalSpan.innerText = 0;
+  cartSection.appendChild(totalSpan);
+};
+
+// const itemsPrice = document.querySelectorAll('.item-price');
+// totalSpan.innerText = itemsPrice.forEach((item) => total + Number(item));
+
 const createCart = async (event) => {
   const itemObj = await fetchItem(getSkuFromProductItem(event.target.parentNode));
   const { id, title, price } = itemObj;
-  const cart = document.querySelector('.cart__items');
   cart.appendChild(createCartItemElement({ sku: id, name: title, salePrice: price }));
   saveCartItems(cart.innerHTML);
 };
 
+const clearCartItems = () => {
+  localStorage.removeItem('cartItems');
+  cart.innerHTML = '';
+};
+
+clearCart.addEventListener('click', clearCartItems);
+
 window.onload = async () => {
-  const cart = document.querySelector('.cart__items');
+  cart.innerHTML = getSavedCartItems();
+  cart.childNodes.forEach((item) => item.addEventListener('click', cartItemClickListener));
   await showItems();
   const addButtons = document.querySelectorAll('.item__add');
   addButtons.forEach((button) => button.addEventListener('click', createCart));
-  getSavedCartItems(cart);
+  addButtons.forEach((button) => button.addEventListener('click', itemPrice));
+  sumPrice();
 };
