@@ -113,6 +113,10 @@ body {
   box-sizing: border-box;
 }
 
+.item:hover {
+  background-color: white;
+}
+
 .item .item__sku {
   display: none;
 }
@@ -126,7 +130,9 @@ body {
 }
 
 .item .item__image {
-  width: 100%;
+  width: 90%;
+  align-self: center;
+  margin-bottom: 10px;
 }
 
 .item .item__add {
