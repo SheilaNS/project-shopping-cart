@@ -151,6 +151,12 @@ body {
   overflow-y: scroll;
 }
 
+.cart__item {
+  margin: 10px 0;
+  padding-bottom: 5px;
+  border-bottom: 1px solid lightgray;
+}
+
 .empty-cart {
   width: 170px;
   height: 35px;
