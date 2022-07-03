@@ -1,8 +1,7 @@
-const productUrl = (param) => `https://api.mercadolibre.com/sites/MLB/search?q=${param}`;
-
 const fetchProducts = async (param) => {
   try {
-    const url = productUrl(param);
+    const productUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${param}`;
+    const url = productUrl;
     const response = await fetch(url);
     const data = await response.json();
     return data;

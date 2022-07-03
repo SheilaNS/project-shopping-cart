@@ -9,9 +9,9 @@ const savePrice = () => {
 };
 
 // https://stackoverflow.com/questions/951021/what-is-the-javascript-version-of-sleep
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// function sleep(ms) {
+//   return new Promise((resolve) => setTimeout(resolve, ms));
+// }
 
 // cria o elemento da imagem
 function createProductImageElement(imageSource) {
@@ -103,6 +103,7 @@ const clearCartItems = () => {
 };
 clearCart.addEventListener('click', clearCartItems);
 
+// cria o carregando...
 const loadWord = document.createElement('p');
 const loading = () => {
   const section = document.querySelector('.items');
@@ -121,9 +122,9 @@ window.onload = async () => {
   }
   cart.childNodes.forEach((item) => item.addEventListener('click', cartItemClickListener));
   loading();
-  await sleep(1000);
-  loadWord.remove();
+  // await sleep(1000);
   await showItems();
+  loadWord.remove();
   const addButtons = document.querySelectorAll('.item__add');
   addButtons.forEach((button) => button.addEventListener('click', createCart));
 };
