@@ -4,15 +4,15 @@ const CART_OL = '.cart__items';
 const localFilter = (id) => {
   const cart = JSON.parse(getSavedCartItems());
   cartList = cart.filter((elem) => elem.id !== id);
-  saveCartItems(cartList);
+  saveCartItems(JSON.stringify(cartList));
 };
 
 // salva a lista de items no localStorage
 const localSave = (obj) => {
   const cart = JSON.parse(getSavedCartItems());
-  const cartList = !cart ? [] : cart;
+  const cartList = cart || [];
   cartList.push(obj);
-  saveCartItems(cartList);
+  saveCartItems(JSON.stringify(cartList));
 };
 
 // calcula o valor total dos items no carrinho
@@ -104,15 +104,13 @@ const addProducts = async () => {
 // recupera os itens do carrinho no localStorage
 const loadCart = () => {
   const localCart = getSavedCartItems();
-  if (localCart) {
-    const localStorageList = JSON.parse(localCart);
-    const cartOl = document.querySelector(CART_OL);
-    localStorageList.forEach((elem) => {
-      const product = createCartItemElement(elem);
-      cartOl.appendChild(product);
-    });
-    totalPrice();
-  }
+  const localParse = JSON.parse(localCart) || [];
+  const cartOl = document.querySelector(CART_OL);
+  localParse.forEach((elem) => {
+    const product = createCartItemElement(elem);
+    cartOl.appendChild(product);
+  });
+  totalPrice();
 };
 
 // cria o elemento carregando
