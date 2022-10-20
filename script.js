@@ -1,130 +1,139 @@
-const cart = document.querySelector('.cart__items'); // cart ol
-const clearCart = document.querySelector('.empty-cart'); // clear button
-const priceSpan = document.querySelector('.total-price'); // span de preço
-let preco = 0;
+const CART_OL = '.cart__items';
 
-// salva o valor total do carrinho no localStorage
-const savePrice = () => {
-  localStorage.setItem('total', priceSpan.innerText);
+// remove um item do localStorage
+const localFilter = (id) => {
+  const cart = JSON.parse(getSavedCartItems());
+  cartList = cart.filter((elem) => elem.id !== id);
+  saveCartItems(cartList);
 };
 
-// https://stackoverflow.com/questions/951021/what-is-the-javascript-version-of-sleep
-// function sleep(ms) {
-//   return new Promise((resolve) => setTimeout(resolve, ms));
-// }
+// salva a lista de items no localStorage
+const localSave = (obj) => {
+  const cart = JSON.parse(getSavedCartItems());
+  const cartList = !cart ? [] : cart;
+  cartList.push(obj);
+  saveCartItems(cartList);
+};
 
-// cria o elemento da imagem
-function createProductImageElement(imageSource) {
+// calcula o valor total dos items no carrinho
+const totalPrice = () => {
+  const cartItems = document.querySelectorAll('.cart__item');
+  let sum = 0;
+  cartItems.forEach((elem) => {
+    const price = elem.innerText.split('$')[1];
+    sum += Number(price);
+  });
+  const totalPriceSpam = document.querySelector('.total-price');
+  totalPriceSpam.innerText = `${sum.toFixed(2)}`;
+};
+
+// limpa os items do carrinho
+const clearButton = document.querySelector('.empty-cart');
+clearButton.addEventListener('click', () => {
+  const cartOl = document.querySelector(CART_OL);
+  cartOl.innerText = '';
+  localStorage.clear();
+  totalPrice();
+});
+
+// cria a tag de imagem do produto
+const createProductImageElement = (imageSource) => {
   const img = document.createElement('img');
   img.className = 'item__image';
   img.src = imageSource;
   return img;
-}
+};
 
-// cria um elemento HTML
-function createCustomElement(element, className, innerText) {
+// cria uma tag de forma dinâmica
+const createCustomElement = (element, className, innerText) => {
   const e = document.createElement(element);
   e.className = className;
   e.innerText = innerText;
   return e;
-}
+};
 
-// cria os items da section items
-function createProductItemElement({ sku, name, image }) {
+// cria o item do carrinho
+const createCartItemElement = ({ id, title, price }) => {
+    const li = document.createElement('li');
+    li.className = 'cart__item';
+    li.innerText = `ID: ${id} | TITLE: ${title} | PRICE: $${price}`;
+    li.addEventListener('click', (event) => {
+      const itemId = event.target.innerText.split(' ')[1];
+      event.target.remove();
+      localFilter(itemId);
+      totalPrice();  
+    });
+    return li;
+  };
+  
+  // adiciona o item no carrinho
+  const addToCart = async (event) => {
+    const prodId = event.target.parentNode.firstChild.innerText;
+    const data = await fetchItem(prodId);
+    const cartOl = document.querySelector(CART_OL);
+    const cartItem = createCartItemElement(data);
+    cartOl.appendChild(cartItem);
+    localSave(data);
+    totalPrice();
+  };
+
+// cria o card do produto
+const createProductItemElement = ({ id, title, thumbnail }) => {
   const section = document.createElement('section');
   section.className = 'item';
-  section.appendChild(createCustomElement('span', 'item__sku', sku));
-  section.appendChild(createCustomElement('span', 'item__title', name));
-  section.appendChild(createProductImageElement(image));
-  section.appendChild(createCustomElement('button', 'item__add', 'Adicionar ao carrinho!'));
+  section.appendChild(createCustomElement('span', 'item_id', id));
+  section.appendChild(createCustomElement('span', 'item__title', title));
+  section.appendChild(createProductImageElement(thumbnail));
+  const addCartButton = createCustomElement('button', 'item__add', 'Adicionar ao carrinho!');
+  addCartButton.addEventListener('click', addToCart);
+  section.appendChild(addCartButton);
   return section;
-}
+};
 
-// adiciona os items no HTML
-const showItems = async () => {
-  const itemObj = await fetchProducts('computador');
-  const { results } = itemObj;
-  results.map((prod) => ({ sku: prod.id, name: prod.title, image: prod.thumbnail }))
-    .forEach((elem) => {
-    const items = document.querySelector('.items');
-    items.appendChild(createProductItemElement(elem));
+// renderiza os produtos na tela
+const addProducts = async () => {
+  const data = await fetchProducts('computador');
+  const { results } = data;
+  const itemsSection = document.querySelector('.items');
+  results.forEach((element) => {
+    const products = createProductItemElement(element);
+    itemsSection.appendChild(products);    
   });
 };
 
-// seleciona o ID do item
-function getSkuFromProductItem(item) {
-  return item.querySelector('span.item__sku').innerText;
-}
-
-// apaga o li do carrinho e subtrai o valor do item removido do valor total do preço
-function cartItemClickListener(event) {
-  event.target.remove();
-  saveCartItems(cart.innerHTML);
-  if (cart.childNodes.length > 0) {
-  preco = Number(priceSpan.innerText);
-  itemPrice = event.target.innerText;
-  arrayPrice = itemPrice.split(' ');
-  priceOnly = Number(arrayPrice[arrayPrice.length - 1].slice(1));
-  priceSpan.innerText = +(+preco - +priceOnly).toFixed(2);
-  savePrice();
-  } else {
-    preco = 0;
-    priceSpan.innerText = preco;
-    savePrice();
+// recupera os itens do carrinho no localStorage
+const loadCart = () => {
+  const localCart = getSavedCartItems();
+  if (localCart) {
+    const localStorageList = JSON.parse(localCart);
+    const cartOl = document.querySelector(CART_OL);
+    localStorageList.forEach((elem) => {
+      const product = createCartItemElement(elem);
+      cartOl.appendChild(product);
+    });
+    totalPrice();
   }
-}
-
-// cria o item li do carrinho
-function createCartItemElement({ sku, name, salePrice }) {
-  const li = document.createElement('li');
-  li.className = 'cart__item';
-  li.innerText = `SKU: ${sku} | NAME: ${name} | PRICE: $${salePrice}`;
-  li.addEventListener('click', cartItemClickListener);
-  return li;
-}
-
-// adiciona os items do carrinho no HTML
-priceSpan.innerText = preco;
-const createCart = async (event) => {
-  const itemObj = await fetchItem(getSkuFromProductItem(event.target.parentNode));
-  const { id, title, price } = itemObj;
-  cart.appendChild(createCartItemElement({ sku: id, name: title, salePrice: price }));
-  saveCartItems(cart.innerHTML);
-  preco += Number(price);
-  priceSpan.innerText = +preco;
-  savePrice();
 };
 
-// limpa a lista de itens do carrinho, limpa o LocalStorage e zera o valor total
-const clearCartItems = () => {
-  localStorage.clear();
-  cart.innerHTML = '';
-  priceSpan.innerHTML = 0;
-};
-clearCart.addEventListener('click', clearCartItems);
-
-// cria o carregando...
-const loadWord = document.createElement('p');
-const loading = () => {
-  const section = document.querySelector('.items');
-  loadWord.className = 'loading';
-  loadWord.innerText = 'Carregando...';
-  section.appendChild(loadWord);  
+// cria o elemento carregando
+const loadingCreate = () => {
+  const itemsSection = document.querySelector('.items');
+  const loadingSpan = document.createElement('span');
+  loadingSpan.innerText = 'carregando...';
+  loadingSpan.className = 'loading';
+  itemsSection.appendChild(loadingSpan);
 };
 
-// acessa o localStorage, adiciona o click nos itens do carrinho, cria a lista de itens do shopping e adiciona o click de adicionar no carrinho
+// remove o elemento carregando
+const loadingClear = () => {
+  const loadingSpan = document.querySelector('.loading');
+  loadingSpan.remove();
+};
+
+// chama as funções ao carregar a tela
 window.onload = async () => {
-  cart.innerHTML = getSavedCartItems('cartItems');
-  if (!getSavedCartItems('total')) {
-    priceSpan.innerHTML = 0;
-  } else {
-    priceSpan.innerHTML = getSavedCartItems('total');
-  }
-  cart.childNodes.forEach((item) => item.addEventListener('click', cartItemClickListener));
-  loading();
-  // await sleep(1000);
-  await showItems();
-  loadWord.remove();
-  const addButtons = document.querySelectorAll('.item__add');
-  addButtons.forEach((button) => button.addEventListener('click', createCart));
+  loadingCreate();
+  await addProducts();
+  loadingClear();
+  loadCart();
 };
